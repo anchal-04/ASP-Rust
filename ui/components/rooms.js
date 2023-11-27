@@ -54,7 +54,12 @@ export default function ChatList({ onChatChange, userId }) {
             })
     }, [])
 
-    const onSelectedChat = (idx, item) => {
+    const onSelectedChat = async (idx, item) => {
+        await getRooms()
+            .then((data) => {
+                setData(data)
+                setLoading(false)
+            })
         setSelectedItem(idx)
         let mapUsers = new Map();
         item.users.forEach(el => {

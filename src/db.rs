@@ -97,8 +97,23 @@ fn iso_date() -> String {
     return now.to_rfc3339();
 }
 
+// pub fn insert_new_user(conn: &mut SqliteConnection, nm: &str, pn: &str) -> Result<User, DbError> {
+//     use crate::schema::users::dsl::*;
+
+//     let new_user = User {
+//         id: Uuid::new_v4().to_string(),
+//         username: nm.to_owned(),
+//         phone: pn.to_owned(),
+//         created_at: iso_date(),
+//     };
+
+//     diesel::insert_into(users).values(&new_user).execute(conn)?;
+
+//     Ok(new_user)
+// }
 pub fn insert_new_user(conn: &mut SqliteConnection, nm: &str, pn: &str) -> Result<User, DbError> {
     use crate::schema::users::dsl::*;
+    use crate::schema::rooms;
 
     let new_user = User {
         id: Uuid::new_v4().to_string(),
@@ -108,6 +123,22 @@ pub fn insert_new_user(conn: &mut SqliteConnection, nm: &str, pn: &str) -> Resul
     };
 
     diesel::insert_into(users).values(&new_user).execute(conn)?;
+
+    use crate::schema::rooms::dsl::*;
+
+    let rooms_data: Vec<Room> = rooms::table.get_results(conn)?;
+    let data = rooms_data.to_vec();
+
+    for room in &data {
+
+        let participant_id = &room.participant_ids;
+        let room_id = &room.id;
+        let updated_participant_ids = format!("{},{}", participant_id, new_user.id);
+
+        let updated_room = diesel::update(rooms.filter(rooms::id.eq(room_id)))
+            .set(participant_ids.eq(updated_participant_ids))
+            .execute(conn);
+    }
 
     Ok(new_user)
 }
