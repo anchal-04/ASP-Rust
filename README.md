@@ -1,2 +1,2 @@
 # ASP-Rust
-7Zip using Rust.
+Chat application using Rust.
